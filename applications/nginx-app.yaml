@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/nirmata/demo-remediator.git
+    repoURL: https://github.com/anuddeeph1/test-remediator.git
     targetRevision: main
     path: apps/nginx
   destination:
