@@ -10,7 +10,7 @@ spec:
     targetRevision: main
     path: apps/nginx
   destination:
-    server: https://kubernetes.default.svc
+    name: kind-argo-spoke
     namespace: nginx
   syncPolicy:
     automated:
