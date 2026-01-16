@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: java-hello-world
+  labels:
+    app: java-hello-world
+  namespace: banking
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: java-hello-world
+  template:
+    metadata:
+      labels:
+        app: java-hello-world
+    spec:
+      containers:
+        - name: java-hello-world
+          image: eclipse-temurin:17-jdk-jammy
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo 'public class HelloWorld { public static void main(String[] args) throws Exception { System.out.println("Hello World from Java!"); while(true) { Thread.sleep(60000); } } }' > /tmp/HelloWorld.java &&
+              javac /tmp/HelloWorld.java -d /tmp &&
+              java -Xms400m -Xmx500m -cp /tmp HelloWorld
+          env:
+            - name: JAVA_OPTS
+              value: "-Xms400m -Xmx500m"
+          resources:
+            requests:
+              memory: "500Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

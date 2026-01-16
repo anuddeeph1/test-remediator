@@ -1,0 +1,78 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: banking-app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: aggregator
+ namespace: banking-app
+spec:
+ selector:
+   matchLabels:
+     app: aggregator
+ replicas: 1
+ template:
+   metadata:
+     labels:
+       app: aggregator
+   spec:
+     containers:
+     - name: aggregator-container
+       image: k8s.gcr.io/hpa-example
+       ports:
+       - containerPort: 80
+       resources:
+         limits:
+           cpu: 500m
+         requests:
+           cpu: 200m
+           memory: 56Mi
+     - name: proxy-sidecar
+       image: k8s.gcr.io/hpa-example
+       ports:
+       - containerPort: 8080
+       command: ["/bin/bash", "-c"]
+       args:
+         - |
+           sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf && sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/apache2.conf && apache2-foreground
+       resources:
+         limits:
+           cpu: 200m
+         requests:
+           cpu: 200m
+           memory: 56Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: aggregator
+ namespace: banking-app
+ labels:
+   app: aggregator
+spec:
+ ports:
+ - port: 80
+   name: http
+   targetPort: 80
+ - port: 8080
+   name: http2
+   targetPort: 8080
+ selector:
+   app: aggregator
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+ name: aggregator-deployment
+ namespace: banking-app
+spec:
+ scaleTargetRef:
+   apiVersion: apps/v1
+   kind: Deployment
+   name: aggregator
+ minReplicas: 1
+ maxReplicas: 2
+ targetCPUUtilizationPercentage: 50

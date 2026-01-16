@@ -1,0 +1,50 @@
+---
+# Deployment Manifest
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world-deployment
+  labels:
+    app: hello-world
+    app-type: golang
+    app-stack: go
+  namespace: banking
+spec:
+  replicas: 1 # Run one instance of the app
+  selector:
+    matchLabels:
+      app: hello-world
+  template:
+    metadata:
+      labels:
+        app: hello-world
+    spec:
+      containers:
+      - name: hello-world-container
+        image: ghcr.io/jonashackt/hello-world # The image to run
+        command: ["sleep"]
+        args: ["infinity"]
+        ports:
+        - containerPort: 8080 # The port the container listens on (common for this image)
+        resources:
+          requests:
+            cpu: 300m
+            memory: 50Mi
+          limits:
+            cpu: 300m
+            memory: 500Mi
+     
+---
+# Service Manifest
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-world-service
+spec:
+  type: LoadBalancer # Or NodePort, ClusterIP, depending on exposure needs
+  selector:
+    app: hello-world # Matches the labels from the Deployment
+  ports:
+  - protocol: TCP
+    port: 80 # The port the service listens on
+    targetPort: 8080 # The port on the container to forward to
